@@ -1,0 +1,36 @@
+syntax = "proto3";
+
+import "google/api/annotations.proto";
+import "google/api/http.proto";
+
+option java_package = "io.helidon.poc.protobuf";
+option java_outer_classname = "GreetingProtos";
+
+service GreetingService {
+  rpc GetDefaultGreeting(Void) returns (Greeting) {
+    option (google.api.http) = {
+      get: "/"
+    };
+  }
+  rpc GetGreeting(Name) returns (Greeting) {
+    option (google.api.http) = {
+      get: "/{name}"
+    };
+  }
+  rpc SetGreeting(Greeting) returns (Greeting) {
+    option (google.api.http) = {
+      post: "/"
+      body: "*"
+    };
+  }
+}
+
+message Void {}
+
+message Name {
+  string name = 1;
+}
+
+message Greeting {
+  string greeting = 1;
+}
