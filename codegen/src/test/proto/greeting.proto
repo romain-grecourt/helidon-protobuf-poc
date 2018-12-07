@@ -3,7 +3,7 @@ syntax = "proto3";
 import "google/api/annotations.proto";
 import "google/api/http.proto";
 
-option java_package = "io.helidon.poc.protobuf";
+option java_package = "io.helidon.protobuf.codegen";
 option java_outer_classname = "GreetingProtos";
 
 service GreetingService {
@@ -17,7 +17,7 @@ service GreetingService {
       get: "/{name}"
     };
   }
-  rpc SetGreeting(Greeting) returns (Greeting) {
+  rpc SetDefaultGreeting(Greeting) returns (Greeting) {
     option (google.api.http) = {
       post: "/"
       body: "*"

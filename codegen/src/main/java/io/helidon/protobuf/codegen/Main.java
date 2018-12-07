@@ -1,11 +1,12 @@
 package io.helidon.protobuf.codegen;
 
+import java.io.IOException;
+
 import com.google.protobuf.DescriptorProtos.FileDescriptorProto;
-import com.google.protobuf.DescriptorProtos.FileOptions;
 import com.google.protobuf.DescriptorProtos.ServiceDescriptorProto;
 import com.google.protobuf.compiler.PluginProtos.CodeGeneratorRequest;
 import com.google.protobuf.compiler.PluginProtos.CodeGeneratorResponse;
-import java.io.IOException;
+import io.helidon.protobuf.codegen.ServiceCodeGenerator.ServiceCode;
 
 /**
  *
@@ -16,23 +17,24 @@ public class Main {
     public static void main(String[] args) throws IOException {
         CodeGeneratorRequest request = CodeGeneratorRequest.parseFrom(System.in);
         CodeGeneratorResponse.Builder responseBuilder = CodeGeneratorResponse.newBuilder();
-        for (FileDescriptorProto fileDescProto : request.getProtoFileList()) {
-            FileOptions options = fileDescProto.getOptions();
-            String packagePath = options.getJavaPackage().replace('.', '/') + "/";
-            for (ServiceDescriptorProto serviceDescProto : fileDescProto.getServiceList()) {
-                String serviceName = serviceDescProto.getName();
-                StringBuilder content = new StringBuilder();
-                // TODO
-                // generate an abstract class with proper prototypes
-                content.append("interface ")
-                        .append(serviceName)
-                        .append(" { }");
-                responseBuilder.addFile(CodeGeneratorResponse.File.newBuilder()
-                        .setName(packagePath + serviceName + ".java")
-                        .setContent(content.toString()));
-            }
-        }
+        generate(request, responseBuilder);
         CodeGeneratorResponse response = responseBuilder.build();
         response.writeTo(System.out);
+    }
+
+    static void generate(final CodeGeneratorRequest request,
+                         final CodeGeneratorResponse.Builder responseBuilder) {
+
+        for (FileDescriptorProto protoFile : request.getProtoFileList()) {
+            if(!request.getFileToGenerateList().contains(protoFile.getName())){
+                continue;
+            }
+            for (ServiceDescriptorProto service : protoFile.getServiceList()) {
+                ServiceCode serviceCode = ServiceCodeGenerator.generate(service, protoFile.getOptions());
+                responseBuilder.addFile(CodeGeneratorResponse.File.newBuilder()
+                        .setName(serviceCode.filePath())
+                        .setContent(serviceCode.content()));
+            }
+        }
     }
 }
