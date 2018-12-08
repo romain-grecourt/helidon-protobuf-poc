@@ -2,8 +2,10 @@ package io.helidon.protobuf.codegen;
 
 import java.io.IOException;
 
+import com.google.api.AnnotationsProto;
 import com.google.protobuf.DescriptorProtos.FileDescriptorProto;
 import com.google.protobuf.DescriptorProtos.ServiceDescriptorProto;
+import com.google.protobuf.ExtensionRegistry;
 import com.google.protobuf.compiler.PluginProtos.CodeGeneratorRequest;
 import com.google.protobuf.compiler.PluginProtos.CodeGeneratorResponse;
 import io.helidon.protobuf.codegen.ServiceCodeGenerator.ServiceCode;
@@ -15,7 +17,9 @@ import io.helidon.protobuf.codegen.ServiceCodeGenerator.ServiceCode;
 public class Main {
 
     public static void main(String[] args) throws IOException {
-        CodeGeneratorRequest request = CodeGeneratorRequest.parseFrom(System.in);
+        ExtensionRegistry registry = ExtensionRegistry.newInstance();
+        registry.add(AnnotationsProto.http);
+        CodeGeneratorRequest request = CodeGeneratorRequest.parseFrom(System.in, registry);
         CodeGeneratorResponse.Builder responseBuilder = CodeGeneratorResponse.newBuilder();
         generate(request, responseBuilder);
         CodeGeneratorResponse response = responseBuilder.build();

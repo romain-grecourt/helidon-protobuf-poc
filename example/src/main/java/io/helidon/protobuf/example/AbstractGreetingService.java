@@ -11,9 +11,9 @@ public abstract class AbstractGreetingService implements Service {
 
     @Override
     public void update(Routing.Rules rules) {
-        rules.any("/", this::getDefaultGreetingHandler)
-             .any("/", this::getGreetingHandler)
-             .any("/", this::setDefaultGreetingHandler);
+        rules.get("/", this::getDefaultGreetingHandler)
+             .get("/{name}", this::getGreetingHandler)
+             .post("/", this::setDefaultGreetingHandler);
     }
 
     public abstract GreetingProtos.Greeting getDefaultGreeting(GreetingProtos.Void message);
@@ -33,6 +33,7 @@ public abstract class AbstractGreetingService implements Service {
     private void getGreetingHandler(final ServerRequest req, final ServerResponse res) {
         try {
             GreetingProtos.Name.Builder inputMessageBuilder = GreetingProtos.Name.newBuilder();
+            inputMessageBuilder.setName(req.path().param("name"));
             GreetingProtos.Name inputMessage = inputMessageBuilder.build();
             res.send(JsonFormat.printer().print(getGreeting(inputMessage)));
         } catch (InvalidProtocolBufferException ex) {
@@ -41,12 +42,15 @@ public abstract class AbstractGreetingService implements Service {
     }
 
     private void setDefaultGreetingHandler(final ServerRequest req, final ServerResponse res) {
-        try {
-            GreetingProtos.Greeting.Builder inputMessageBuilder = GreetingProtos.Greeting.newBuilder();
-            GreetingProtos.Greeting inputMessage = inputMessageBuilder.build();
-            res.send(JsonFormat.printer().print(setDefaultGreeting(inputMessage)));
-        } catch (InvalidProtocolBufferException ex) {
-            req.next(ex);
-        }
+        req.content().as(String.class).thenAccept((json) -> {
+            try {
+                GreetingProtos.Greeting.Builder inputMessageBuilder = GreetingProtos.Greeting.newBuilder();
+                JsonFormat.parser().merge(json, inputMessageBuilder);
+                GreetingProtos.Greeting inputMessage = inputMessageBuilder.build();
+                res.status(201).send(JsonFormat.printer().print(setDefaultGreeting(inputMessage)));
+            } catch (InvalidProtocolBufferException ex) {
+                req.next(ex);
+            }
+        });
     }
 }

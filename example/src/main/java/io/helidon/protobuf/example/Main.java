@@ -13,7 +13,7 @@ public final class Main {
 
     private static Routing createRouting() {
         return Routing.builder()
-                .register(new GreetingService())
+                .register("/greet", new GreetingService())
                 .build();
     }
 
