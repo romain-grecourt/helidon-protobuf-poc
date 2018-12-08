@@ -2,6 +2,11 @@
 
 Experiment around supporting Protobuf in Helidon SE.
 
+# TODO
+
+The current POC converts the payload to JSON. Investigate support protobuf message
+ in the webserver using the netty protobuf codec.
+
 # Links
 
 - https://developers.google.com/protocol-buffers/docs/javatutorial
