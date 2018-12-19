@@ -76,10 +76,10 @@
                                     <artifactId>helidon-protobuf-codegen</artifactId>
                                     <version>${helidon.protoc.plugin.version}</version>
                                     <mainClass>io.helidon.protobuf.codegen.Main</mainClass>
-                                    <jvmArgs>
-                                        <!--<jvmArg>-Xdebug </jvmArg>-->
-                                        <!--<jvmArg>-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=localhost:1044,quiet=y</jvmArg>-->
-                                    </jvmArgs>
+                                    <!--<jvmArgs>
+                                        <jvmArg>-Xdebug </jvmArg>
+                                        <jvmArg>-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=localhost:1044,quiet=y</jvmArg>
+                                    </jvmArgs>-->
                                 </protocPlugin>
                             </protocPlugins>
                         </configuration>
@@ -90,6 +90,11 @@
     </build>
 
     <dependencies>
+        <dependency>
+            <groupId>io.helidon.protobuf</groupId>
+            <artifactId>helidon-protobuf-support</artifactId>
+            <version>${project.version}</version>
+        </dependency>
         <dependency>
             <groupId>com.google.protobuf</groupId>
             <artifactId>protobuf-java</artifactId>
@@ -109,6 +114,16 @@
         <dependency>
             <groupId>io.helidon.webserver</groupId>
             <artifactId>helidon-webserver-netty</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-api</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-engine</artifactId>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 </project>

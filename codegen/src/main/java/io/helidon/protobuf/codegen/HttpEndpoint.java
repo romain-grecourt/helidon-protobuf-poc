@@ -2,7 +2,6 @@ package io.helidon.protobuf.codegen;
 
 import com.google.api.AnnotationsProto;
 import com.google.api.HttpRule;
-import com.google.protobuf.DescriptorProtos;
 import com.google.protobuf.DescriptorProtos.FileOptions;
 import com.google.protobuf.DescriptorProtos.MethodDescriptorProto;
 import java.util.ArrayList;
@@ -89,7 +88,7 @@ public class HttpEndpoint {
             final FileOptions options) {
 
         final ArrayList<HttpEndpoint> endpoints = new ArrayList<>();
-        for (DescriptorProtos.MethodDescriptorProto method : methodList) {
+        for (MethodDescriptorProto method : methodList) {
             final HttpRule rule = getHttpAnnotation(method);
             if (rule == null) {
                 continue;
@@ -133,7 +132,7 @@ public class HttpEndpoint {
         return str != null && !str.isEmpty();
     }
 
-    private static HttpRule getHttpAnnotation(final DescriptorProtos.MethodDescriptorProto method) {
+    private static HttpRule getHttpAnnotation(final MethodDescriptorProto method) {
         final Object httpAnnot = method.getOptions()
                 .getExtension(AnnotationsProto.http);
         if (httpAnnot != null && (httpAnnot instanceof HttpRule)) {

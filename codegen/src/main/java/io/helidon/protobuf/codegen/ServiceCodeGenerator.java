@@ -42,14 +42,14 @@ public class ServiceCodeGenerator {
                 service.getMethodList(), options);
 
         final String serviceName = Character.toUpperCase(service.getName().charAt(0))
-                        + service.getName().substring(1);
+                + service.getName().substring(1);
 
         final StringBuilder content = new StringBuilder();
 
         // package declaration
         content.append("package ")
-               .append(options.getJavaPackage())
-               .append(";\n\n");
+                .append(options.getJavaPackage())
+                .append(";\n\n");
 
         // imports
         final Set<String> packages = new HashSet<>();
@@ -57,11 +57,10 @@ public class ServiceCodeGenerator {
         packages.add("io.helidon.webserver.ServerRequest");
         packages.add("io.helidon.webserver.ServerResponse");
         packages.add("io.helidon.webserver.Service");
-        packages.add("com.google.protobuf.InvalidProtocolBufferException");
-        packages.add("com.google.protobuf.util.JsonFormat");
+        packages.add("io.helidon.protobuf.support.ProtobufSupport");
         final List<String> sortedPackages = new ArrayList<String>(packages);
         Collections.sort(sortedPackages);
-        for(String pkg : sortedPackages){
+        for (String pkg : sortedPackages) {
             content.append("import ")
                     .append(pkg)
                     .append(";\n");
@@ -75,101 +74,91 @@ public class ServiceCodeGenerator {
 
         // update rules start
         content.append("    @Override\n")
-                .append("    public void update(Routing.Rules rules) {");
-        boolean firstRule = true;
-        for(HttpEndpoint httpEndpoint : httpEndpoints){
-            if(firstRule){
-                content.append("\n        rules.");
-            } else {
-                content.append("\n             .");
+                .append("    public void update(Routing.Rules rules) {")
+                .append("\n        rules")
+                .append("\n              // register writer for all output messages")
+                .append("\n             .register(ProtobufSupport.builder().build())");
+        for (HttpEndpoint httpEndpoint : httpEndpoints) {
+            if (httpEndpoint.verb() == HttpEndpoint.HttpVerb.POST
+                    || httpEndpoint.verb() == HttpEndpoint.HttpVerb.POST) {
+                content.append("\n              // register reader for input message")
+                        .append("\n             .")
+                        .append(httpEndpoint.verb().toString().toLowerCase())
+                        .append("(\"")
+                        .append(httpEndpoint.path())
+                        .append("\", ProtobufSupport.create(")
+                        .append(httpEndpoint.inputType())
+                        .append(".getDefaultInstance()))");
             }
-            content.append(httpEndpoint.verb().toString().toLowerCase())
-                   .append("(\"")
-                   .append(httpEndpoint.path())
-                   .append("\", this::")
-                   .append(httpEndpoint.name())
-                   .append("Handler)");
-            if(firstRule){
-                firstRule = false;
-            }
+            content.append("\n             .")
+                    .append(httpEndpoint.verb().toString().toLowerCase())
+                    .append("(\"")
+                    .append(httpEndpoint.path())
+                    .append("\", this::")
+                    .append(httpEndpoint.name())
+                    .append("Handler)");
         }
-        if(!httpEndpoints.isEmpty()){
+        if (!httpEndpoints.isEmpty()) {
             content.append(';');
         }
         // update rules end
         content.append("\n    }\n");
 
         // abstract methods declaration
-        for(HttpEndpoint httpEndpoint : httpEndpoints){
+        for (HttpEndpoint httpEndpoint : httpEndpoints) {
             content.append("\n    public abstract ")
-                   .append(httpEndpoint.outputType())
-                   .append(" ")
-                   .append(httpEndpoint.name())
-                   .append("(")
-                   .append(httpEndpoint.inputType())
-                   .append(" message);");
+                    .append(httpEndpoint.outputType())
+                    .append(" ")
+                    .append(httpEndpoint.name())
+                    .append("(")
+                    .append(httpEndpoint.inputType())
+                    .append(" message);");
         }
         content.append('\n');
 
         // handler methods
-        for(HttpEndpoint httpEndpoint : httpEndpoints){
+        for (HttpEndpoint httpEndpoint : httpEndpoints) {
             content.append("\n    private void ")
-                        .append(httpEndpoint.name())
-                        .append("Handler(final ServerRequest req, final ServerResponse res) {\n");
-            switch(httpEndpoint.verb()){
+                    .append(httpEndpoint.name())
+                    .append("Handler(final ServerRequest req, final ServerResponse res) {\n");
+            switch (httpEndpoint.verb()) {
                 case ANY:
                 case GET:
                 case DELETE:
                 case PATCH:
-                    content.append("        try {\n")
-                            .append("            ")
+                    content.append("        ")
                             .append(httpEndpoint.inputType())
                             .append(".Builder inputMessageBuilder = ")
                             .append(httpEndpoint.inputType())
                             .append(".newBuilder();\n");
                     // path params
-                    for(String pathParam : httpEndpoint.pathParams()){
-                        content.append("            inputMessageBuilder.set")
+                    for (String pathParam : httpEndpoint.pathParams()) {
+                        content.append("        inputMessageBuilder.set")
                                 .append(Character.toUpperCase(pathParam.charAt(0)))
                                 .append(pathParam.substring(1))
                                 .append("(req.path().param(\"")
                                 .append(pathParam)
                                 .append("\"));\n");
                     }
-                    content.append("            ")
+                    content.append("        ")
                             .append(httpEndpoint.inputType())
                             .append(" inputMessage = inputMessageBuilder.build();\n")
-                            .append("            res.send(JsonFormat.printer().print(")
+                            .append("        res.send(")
                             .append(httpEndpoint.name())
-                            .append("(inputMessage)));\n")
-                            .append("        } catch (InvalidProtocolBufferException ex) {\n")
-                            .append("            req.next(ex);\n")
-                            .append("        }\n");
-                break;
+                            .append("(inputMessage));");
+                    break;
                 case POST:
                 case PUT:
-                    content.append("        req.content().as(String.class).thenAccept((json) -> {\n")
-                            .append("            try {\n")
-                            .append("                ")
+                    content.append("        req.content().as(")
                             .append(httpEndpoint.inputType())
-                            .append(".Builder inputMessageBuilder = ")
-                            .append(httpEndpoint.inputType())
-                            .append(".newBuilder();\n")
-                            .append("                JsonFormat.parser().merge(json, inputMessageBuilder);\n")
-                            .append("                ")
-                            .append(httpEndpoint.inputType())
-                            .append(" inputMessage = inputMessageBuilder.build();\n")
-                            .append("                res.status(201).send(JsonFormat.printer().print(")
+                            .append(".class).thenAccept((inputMessage) -> {\n")
+                            .append("           res.status(201).send(")
                             .append(httpEndpoint.name())
-                            .append("(inputMessage)));\n")
-                            .append("            } catch (InvalidProtocolBufferException ex) {\n")
-                            .append("                req.next(ex);\n")
-                            .append("            }\n")
-                            .append("        });\n");
-                            
+                            .append("(inputMessage));\n")
+                            .append("        });");
                     break;
             }
-            content.append("    }\n");
+            content.append("\n    }\n");
         }
 
         // class declaration end

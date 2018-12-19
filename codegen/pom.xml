@@ -68,6 +68,12 @@
             <artifactId>googleapis-common-protos</artifactId>
         </dependency>
         <dependency>
+            <groupId>io.helidon.protobuf</groupId>
+            <artifactId>helidon-protobuf-support</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>io.helidon.webserver</groupId>
             <artifactId>helidon-webserver</artifactId>
             <scope>test</scope>
