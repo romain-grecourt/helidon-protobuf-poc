@@ -12,7 +12,7 @@ public abstract class AbstractGreetingService implements Service {
     public void update(Routing.Rules rules) {
         rules
               // register writer for all output messages
-             .register(ProtobufSupport.builder().build())
+             .any(ProtobufSupport.builder().build())
              .get("/", this::getDefaultGreetingHandler)
              .get("/{name}", this::getGreetingHandler)
               // register reader for input message

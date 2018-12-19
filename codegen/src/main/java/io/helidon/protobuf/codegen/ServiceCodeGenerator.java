@@ -93,7 +93,7 @@ public class ServiceCodeGenerator {
                 .append("    public void update(Routing.Rules rules) {")
                 .append("\n        rules")
                 .append("\n              // register writer for all output messages")
-                .append("\n             .register(ProtobufSupport.builder().build())");
+                .append("\n             .any(ProtobufSupport.builder().build())");
         for (HttpEndpoint httpEndpoint : httpEndpoints) {
             if (httpEndpoint.verb() == HttpEndpoint.HttpVerb.POST
                     || httpEndpoint.verb() == HttpEndpoint.HttpVerb.POST) {
