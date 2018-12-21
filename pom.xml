@@ -33,6 +33,7 @@
     <modules>
         <module>codegen</module>
         <module>example</module>
+        <module>support</module>
     </modules>
 
     <build>
